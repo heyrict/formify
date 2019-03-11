@@ -15,3 +15,7 @@ __pycache__/
 # Data file
 *.xlsx
 *.xls
+
+# Generated files
+static/*.html
+static/*.js

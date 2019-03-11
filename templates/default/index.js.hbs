@@ -34,9 +34,6 @@ function LoginPanel(props) {
         if (!values.pw) {
           errors.pw = "{{i18n.blankPassword}}";
         }
-        if (values.pw.length !== 6) {
-          errors.pw = "{{i18n.wrongPassword}}";
-        }
 
         return errors;
       }}

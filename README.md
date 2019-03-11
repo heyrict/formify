@@ -51,7 +51,9 @@ and a form definition
 
 and you will have a beautiful web form without struggling!
 
-Finally you will have another excel as a output.
+![Default Web frontend](./_static/default-frontend.png)
+
+And you will get another excel as an output when all users submitted their data!
 
 ```
 output.xlsx

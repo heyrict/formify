@@ -114,7 +114,8 @@ output.xlsx
     {
       fieldName: "name",  // The column name in the excel. required
       fieldAlias: "name",  // The name used in the web form. required. must be ascii only.
-      type: "text",  // The type if the field. One of `text`, `date`, `integer`, `float`, `select`
+      type: "text",  // The type if the field. One of `text`, `date`, `integer`, `float`, `select`.
+      hint: "<strong>Your Name</strong>",  // The hint of the field. html allowed.
       validations: [{  // List of validation methods. Currently `regex` and `notNull` are supported.
           type: "regex",
           value: "^[a-zA-Z ]*$"

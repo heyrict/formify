@@ -1,0 +1,343 @@
+const { Formik, Form } = window.Formik;
+const SERVER_ADDR = "{{serverAddress}}";
+const AUTH_STUDENT_QUERY = "AUTH_STUDENT_QUERY";
+const UPDATE_STUDENT_MUTATION = "UPDATE_STUDENT_MUTATION";
+
+function get_data(action, variables) {
+  return fetch(SERVER_ADDR, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json"
+    },
+    body: JSON.stringify({ action, variables })
+  });
+}
+
+function getClassName(e) {
+  if (e) {
+    return "form-control is-invalid";
+  }
+  return "form-control";
+}
+
+function LoginPanel(props) {
+  const initialValues={ id: "", pw: "" };
+  return (
+    <Formik
+      initialValues={initialValues}
+      validate={function(values) {
+        let errors = {};
+        if (!values.id) {
+          errors.id = "{{i18n.blankUsername}}";
+        }
+        if (!values.pw) {
+          errors.pw = "{{i18n.blankPassword}}";
+        }
+        if (values.pw.length !== 6) {
+          errors.pw = "{{i18n.wrongPassword}}";
+        }
+
+        return errors;
+      }}
+      onSubmit={function(values, { setSubmitting, setErrors }) {
+        console.log(values);
+        get_data(AUTH_STUDENT_QUERY, values)
+          .then(function(r) {
+            return r.json();
+          })
+          .then(function(data) {
+           window.data = data
+            if (data.errors) {
+              setErrors({
+                pw: `{{i18n.error}}:${JSON.stringify(
+                  data.errors.map(function(e) {
+                    return e.message;
+                  })
+                )}`
+              });
+            }
+            if (data.data === null) {
+              setErrors({ pw: "{{i18n.wrongPassword}}" });
+            } else {
+              props.setData(data.data);
+              props.changeStage(1);
+            }
+            setSubmitting(false);
+          })
+          .catch((e) => {
+            console.log(e);
+            setErrors({ pw: JSON.stringify(e) });
+            setSubmitting(false);
+          });
+      }}
+    >
+      {function({
+        values,
+        errors,
+        touched,
+        handleChange,
+        handleBlur,
+        handleSubmit,
+        isSubmitting
+      }) {
+        return (
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label htmlFor="id">{{idField}}</label>
+              <input
+                type="text"
+                className={getClassName(touched.id && errors.id)}
+                name="id"
+                value={values.id}
+                onChange={handleChange}
+              />
+              {errors.id &&
+                touched.id && (
+                  <div className="invalid-feedback">{errors.id}</div>
+                )}
+            </div>
+            <div className="form-group">
+              <label htmlFor="pw">{{passwordField}}</label>
+              <input
+                type="password"
+                className={getClassName(touched.pw && errors.pw)}
+                name="pw"
+                value={values.pw}
+                onChange={handleChange}
+              />
+              {errors.pw &&
+                touched.pw && (
+                  <div className="invalid-feedback">{errors.pw}</div>
+                )}
+            </div>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "{{i18n.loggingin}}" : "{{i18n.login}}"}
+            </button>
+          </form>
+        );
+      }}
+    </Formik>
+  );
+}
+
+function EditPanel(props) {
+  return (
+    <div>
+      <button className="btn btn-warning" type="button" onClick={() => props.changeStage(0)}>
+        {{i18n.logout}}&nbsp;({{i18n.logoutWarn}})
+      </button>
+      <hr />
+      <Formik
+        initialValues={props.data}
+        validate={function(values) {
+          let errors = {};
+          {{#each fields}}
+          {{#eq type "integer"}}
+          if (values.{{fieldAlias}} && !/^[0-9. ]*$/.test(values.{{fieldAlias}})) {
+            errors = Object.assign({}, errors, { {{fieldAlias}}: "{{../i18n.invNumberonly}}" });
+          }
+          {{/eq}}
+          {{#eq type "date"}}
+          if (values.{{fieldAlias}} && !/^[0-9\-+:. ]*$/.test(values.{{fieldAlias}})) {
+            errors = Object.assign({}, errors, { {{fieldAlias}}: "{{../i18n.invDateonly}}" });
+          }
+          {{/eq}}
+          {{#validations}}
+          {{#eq type "notNull"}}
+          if (values.{{../fieldAlias}} === null || values.{{../fieldAlias}} === '') {
+            errors = Object.assign({}, errors, { {{../fieldAlias}}: "{{../../i18n.invNoblank}}" });
+          }
+          {{/eq}}
+          {{#eq type "regex"}}
+          if (values.{{../fieldAlias}} && !RegExp("{{value}}").test(values.{{../fieldAlias}})) {
+            errors = Object.assign({}, errors, { {{../fieldAlias}}: "{{../../i18n.invOthers}}" });
+          }
+          {{/eq}}
+          {{/validations}}
+          {{/each}}
+          return errors;
+        }}
+        onSubmit={function(values, { setSubmitting, setErrors }) {
+          console.log("submitting");
+          const postValues = Object.assign({}, values, {
+            {{#fields}}
+            {{#eq type "integer"}}{{fieldAlias}}: parseInt(values.{{fieldAlias}}, 10),{{/eq}}
+            {{#eq type "float"}}{{fieldAlias}}: parseFloat(values.{{fieldAlias}}, 10),{{/eq}}
+            {{/fields}}
+          });
+          get_data(UPDATE_STUDENT_MUTATION, postValues)
+            .then(function(r) {
+              return r.json();
+            })
+            .then(function(data) {
+              console.log(data)
+              if (data.errors) {
+                setErrors({
+                  formError: `{{i18n.error}}:${JSON.stringify(
+                    data.errors.map(function(e) {
+                      return e.message;
+                    })
+                  )}`
+                });
+                return data;
+              }
+              props.changeStage(2);
+            });
+          setSubmitting(false);
+        }}
+      >
+        {function({
+          values,
+          errors,
+          touched,
+          handleChange,
+          handleBlur,
+          handleSubmit,
+          isSubmitting
+        }) {
+          return (
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label htmlFor="id">{{idField}}</label>
+                <input
+                  type="text"
+                  name="id"
+                  value={values.id}
+                  readonly
+                  className="form-control"
+                />
+              </div>
+            {{#fields}}
+              <div className="form-group">
+                <label htmlFor="{{fieldAlias}}">{{fieldName}}</label>
+                {{#if selections}}
+                <select
+                  className={getClassName(touched.{{fieldAlias}} && errors.{{fieldAlias}})}
+                  name="{{fieldAlias}}"
+                  value={values.{{fieldAlias}}}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                >
+                  {{#each selections}}
+                  {{#if value}}
+                  <option value="{{value}}">{{text}}</option>
+                  {{else}}
+                  <option>{{text}}</option>
+                  {{/if}}
+                  {{/each}}
+                </select>
+                {{else}}
+                <input
+                  type="text"
+                  name="{{fieldAlias}}"
+                  value={values.{{fieldAlias}}}
+                  {{#readonly}}
+                  readonly
+                  className="form-control"
+                  {{/readonly}}
+                  {{^readonly}}
+                  className={getClassName(touched.{{fieldAlias}} && errors.{{fieldAlias}})}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  {{/readonly}}
+                />
+                {{/if}}
+                {{#if hint}}
+                <small id="{{fieldAlias}}Help" class="form-text text-muted">
+                  {{{hint}}}
+                </small>
+                {{/if}}
+                {{#unless readonly}}
+                {errors.{{fieldAlias}} &&
+                  touched.{{fieldAlias}} && (
+                    <div className="invalid-feedback">{errors.{{fieldAlias}}}</div>
+                  )}
+                {{/unless}}
+              </div>
+            {{/fields}}
+              {errors.formError && (
+                <div className="form-group">
+                  <div className="text-danger">{errors.formError}</div>
+                </div>
+              )}
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={isSubmitting}
+              >
+                {{i18n.confirm}}
+              </button>
+            </form>
+          );
+        }}
+      </Formik>
+    </div>
+  );
+}
+
+function Thank(props) {
+  return (
+    <div>
+      <h1>{{i18n.success}}</h1>
+      <button
+        className="btn btn-primary"
+        onClick={function() {
+          props.changeStage(0);
+        }}
+      >
+        {{i18n.click2back}}
+      </button>
+    </div>
+  );
+}
+
+class Nav extends React.PureComponent {
+  constructor(props) {
+    super(props);
+    this.state = {
+      stage: 0,
+      data: null
+    };
+  }
+  changeStage(stage) {
+    this.setState({ stage });
+  }
+  setData(data) {
+    this.setState({ data });
+  }
+  render() {
+    return (
+      <div className="container-fluid">
+        <div className="jumbotron">
+          <h2 className="header">
+            {{title}}
+          </h2>
+        </div>
+        {this.state.stage === 0 && (
+          <LoginPanel
+            changeStage={this.changeStage.bind(this)}
+            setData={this.setData.bind(this)}
+          />
+        )}
+        {this.state.stage === 1 && (
+          <EditPanel
+            data={this.state.data}
+            changeStage={this.changeStage.bind(this)}
+            setData={this.setData.bind(this)}
+          />
+        )}
+        {this.state.stage === 2 && (
+          <Thank changeStage={this.changeStage.bind(this)} />
+        )}
+      </div>
+    );
+  }
+}
+
+ReactDOM.render(<Nav />, document.getElementById("root"));
+

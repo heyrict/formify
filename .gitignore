@@ -1,0 +1,17 @@
+# Current config
+config.json
+# Config files
+config/
+
+# Virtual environment
+pyenv/
+
+# Python cache
+__pycache__/
+
+# Vim swap file
+.*.swp
+
+# Data file
+*.xlsx
+*.xls

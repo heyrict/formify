@@ -1,0 +1,18 @@
+{
+  "blankUsername": "Username cannot be blank",
+  "blankPassword": "Password cannot be blank",
+  "wrongPassword": "Wrong password",
+  "connectionError": "Unable to connect to server",
+  "error": "Error",
+  "loggingin": "Loading...",
+  "login": "Sign in",
+  "logout": "Log out",
+  "logoutWarn": "Warning: Your data will not be saved!",
+  "invNoblank": "Invalid Field: This field cannot be blank.",
+  "invNumberonly": "Invalid Field: This field is numeric only.",
+  "invDateonly": "Invalid Field: This field is date only.",
+  "invOthers": "Invalid Field: Please refer to the instructions below.",
+  "confirm": "Confirm",
+  "success": "Success!",
+  "click2back": "Click here to go back"
+}

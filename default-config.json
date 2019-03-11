@@ -1,0 +1,15 @@
+{
+  "locale": "en",
+  "template": "default",
+  "inputFile": "./input.xlsx",
+  "outputFile": "./output.xlsx",
+  "encryption": "none",
+  "updateTime": true,
+  "localAssets": true,
+  "serverAddress": "/apiv1",
+  "title": "Formify Client",
+  "idField": "Student ID",
+  "passwordField": "Password",
+  "mergeInput": true,
+  "fields": []
+}
